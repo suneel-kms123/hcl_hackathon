@@ -9,10 +9,12 @@ terraform {
       version = "3.0.2"
     }
   }
+
+  
   backend "s3" {
     bucket         = "hcl-terraform-state"
     key            = ".terraform/terraform.tfstate"
-    region         = "us-east-1"
+    region         = var.region
     dynamodb_table = "hcl-terraform-lock"
     encrypt        = true
     #profile        = "dev"
@@ -35,4 +37,14 @@ provider "docker" {
     password = data.aws_ecr_authorization_token.this.password
     #password = var.docker_password
   }
+}
+
+resource "aws_dynamodb_table" "state_locking" {
+  hash_key = "LockID"
+  name     = "hcl-terraform-lock"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+  billing_mode = "PAY_PER_REQUEST"
 }

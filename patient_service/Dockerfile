@@ -4,6 +4,11 @@ FROM node:14
 WORKDIR /usr/src/app
 
 # Copy the app.js file
+COPY package*.json ./
+RUN npm install \
+    && npm install -g serve \
+    && npm run build \
+    && rm -fr node_modules
 COPY patient-service.js .
 
 # Expose the port that the app listens on
