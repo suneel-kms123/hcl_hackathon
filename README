@@ -30,3 +30,4 @@
 
 - terraform scripts enhancement
 - docker to use the multi stage build to reduce size
+
