@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}                   # set this to your preferred AWS region, e.g. us-west-1
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-  TF_LOG: INFO        # set this to your Amazon ECR repository name
+  TF_LOG: INFO                                            # set this to your Amazon ECR repository name
   BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE}}
 
 permissions:
@@ -81,7 +81,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CONTAINER_NAME }}
+        container-name: ${{ steps.build-image.outputs.appointment_service_image }}
         image: ${{ steps.build-image.outputs.appointment_service_image }}
       
     - name: Fill in the new image ID in the Amazon ECS task definition
@@ -89,7 +89,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CONTAINER_NAME }}
+        container-name: ${{ steps.build-image.outputs.patient_service_image }}
         image: ${{ steps.build-image.outputs.patient_service_image }}
 
     - name: Deploy Amazon ECS task definition
