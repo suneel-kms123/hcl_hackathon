@@ -27,3 +27,27 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+  
+  Fortify-AST-Scan:
+    # Use the appropriate runner for building your source code. Ensure dev tools required to build your code are present and configured appropriately (MSBuild, Python, etc).
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      # pull-requests: write     # Required if DO_PR_COMMENT is set to true
+
+    steps:
+      # Check out source code
+      - name: Check Out Source Code
+        uses: actions/checkout@v4
+      - name: Run Fortify Scan
+        uses: fortify/github-action@ef5539bf4bd9c45c0bd971978f635a69eae55297
+        with:
+          sast-scan: true          # Run a SAST scan; if not specified or set to false, no SAST scan will be run
+          debricked-sca-scan: true
+        env:
+            FOD_URL: https://ams.fortify.com                 # Must be hardcoded or configured through GitHub variable, not secret
+            FOD_TENANT: ${{secrets.FOD_TENANT}}              # Either tenant/user/password or client id/secret are required;
+            FOD_USER: ${{secrets.FOD_USER}}                  # these should be configured through GitHub secrets.
+            FOD_PASSWORD: ${{secrets.FOD_PAT}}
