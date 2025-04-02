@@ -32,11 +32,11 @@ locals {
 data "aws_iam_role" "ecs_task_execution_role" { name = "ecsTaskExecutionRole" }
 
 data "aws_iam_role" "ecs_task_role" { name = "ecsTaskRole" }
-data "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = data.aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
-data "aws_iam_role_policy_attachment" "ecs_task_role" {
+resource "aws_iam_role_policy_attachment" "ecs_task_role" {
   role       = data.aws_iam_role.ecs_task_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }

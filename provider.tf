@@ -8,13 +8,13 @@ terraform {
       source  = "kreuzwerker/docker"
       version = "3.0.2"
     }
-  }
+  }  
 
   
   backend "s3" {
     bucket         = "hcl-terraform-state"
     key            = ".terraform/terraform.tfstate"
-    region         = var.region
+    region         = "us-east-1"
     dynamodb_table = "hcl-terraform-lock"
     encrypt        = true
     #profile        = "dev"
