@@ -2,6 +2,44 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+resource "aws_network_acl" "main" {
+  vpc_id = module.vpc.vpc_id
+
+  egress {
+    protocol   = "tcp"
+    rule_no    = 200
+    action     = "allow"
+    cidr_block = var.cidr
+    from_port  = 443
+    to_port    = 443
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = var.cidr
+    from_port  = 80
+    to_port    = 80
+  }
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_network_acl_association" "private_acl_association" {
+  count          = var.az_count
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = aws_subnet.private[count.index].id
+}
+
+resource "aws_network_acl_association" "acl_association" {
+  count          = var.az_count
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = aws_subnet.public[count.index].id
+}
+
 resource "aws_subnet" "private" {
   count             = var.az_count
   cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 8, count.index)

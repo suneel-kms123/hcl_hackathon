@@ -19,7 +19,6 @@ module "hcl_ecs" {
   create_cloudwatch_log_group = true
   cloudwatch_log_group_name = "ecs"
 
-
   tags = {
     Name        = "hcl_ecs"
     environment = "dev"
@@ -90,15 +89,17 @@ resource "aws_ecs_service" "patient_service" {
   launch_type     = "FARGATE"
   name            = "${local.example}-patient-service"
   task_definition = resource.aws_ecs_task_definition.patient_service_definition.arn
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 
   lifecycle {
     ignore_changes = [desired_count] # Allow external changes to happen without Terraform conflicts, particularly around auto-scaling.
   }
 
   load_balancer {
-    container_name = local.patient_container_port
+    container_name = local.patient_container_name
     container_port = local.patient_container_port
-    #target_group_arn = aws_alb.hcl_main.arn
     target_group_arn = aws_alb_target_group.hcl_app.arn
   }
 
@@ -138,6 +139,10 @@ resource "aws_ecs_service" "appointment_service" {
 
   lifecycle {
     ignore_changes = [desired_count] # Allow external changes to happen without Terraform conflicts, particularly around auto-scaling.
+  }
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
   }
 
   load_balancer {
