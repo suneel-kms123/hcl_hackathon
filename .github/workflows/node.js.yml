@@ -7,15 +7,14 @@ on:
   pull_request:
     branches: [ "main" ]
 
-defaults:
-  run:
-    working-directory: ./appointment_service
-
 jobs:
   build_appointment_service:
 
     runs-on: ubuntu-latest
-    
+    defaults:
+      run:
+        working-directory: ./appointment_service
+
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
@@ -27,10 +26,14 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./appointment_service
+
+    - name: Build
+      run: npm run build
+      working-directory: ./appointment_service
   
 
   build_patient_service:
@@ -51,12 +54,18 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-      working-directory: ./appoint_service
-    - run: npm run build --if-present
-    - run: npm test
-  
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./patient_service
+
+    - name: Build
+      run: npm run build
+      working-directory: ./patient_service
+    
+    - name: test
+      run: npm test
+      working-directory: ./patient_service
+
   
   Fortify-AST-Scan:
     # Use the appropriate runner for building your source code. Ensure dev tools required to build your code are present and configured appropriately (MSBuild, Python, etc).
