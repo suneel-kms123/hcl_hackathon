@@ -1,4 +1,5 @@
 data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 resource "aws_subnet" "private" {
@@ -25,7 +26,7 @@ resource "aws_internet_gateway" "gw" {
 # Route the public subnet traffic through the IGW
 resource "aws_route" "internet_access" {
   count                  = var.az_count
-  route_table_id         = module.vpc.vpc_main_route_table_id
+  route_table_id         = aws_route_table.private[count.index].id
   depends_on             = [aws_internet_gateway.gw]
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.gw.id
@@ -50,7 +51,7 @@ resource "aws_route_table" "private" {
   vpc_id = module.vpc.vpc_id
 
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block     = aws_subnet.private[count.index].cidr_block
     nat_gateway_id = element(aws_nat_gateway.gw.*.id, count.index)
   }
 }
@@ -61,3 +62,4 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
+

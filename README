@@ -5,12 +5,17 @@
 - applications depend upon the certain library - express
 - install the library/package in the docker file 
 - I have used/created 2 Dockerfile respectively for the patient and appointment applications
+- using the docker-compose to build the dockerfiles
+    - docker-compose build
+    - creates 2 docker images with the name provided in the docker-compose.yml also ports are defined in same file
 
 ### Terraform 
 
 - terraform state is maintained in s3 with dynamodb lock mechanism
 - used terraform provided modules vpc, alb, ecs, ecr
-
+- set TF_LOG=DEBUG to get the verbose logs to debug
+- provider.tf contains the providers library required for the project
+- create workspaces 
 
 ### how to start contributing
 - clone the project

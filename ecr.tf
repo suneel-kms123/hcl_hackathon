@@ -2,6 +2,7 @@ module "ecr" {
   source          = "terraform-aws-modules/ecr/aws"
   version         = "~> 2.3.1"
   repository_name = var.ecr_name
+  repository_image_tag_mutability = "MUTABLE"
 
   repository_read_write_access_arns = [module.hcl_ecs.cluster_arn]
   tags = {
