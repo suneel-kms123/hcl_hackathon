@@ -13,6 +13,13 @@ module "hcl_ecs" {
       }
     }
   }
+
+  cloudwatch_log_group_kms_key_id = module.kms.key_arn
+  cloudwatch_log_group_retention_in_days = 14
+  create_cloudwatch_log_group = true
+  cloudwatch_log_group_name = "ecs"
+
+
   tags = {
     Name        = "hcl_ecs"
     environment = "dev"
