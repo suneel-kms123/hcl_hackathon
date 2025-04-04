@@ -18,6 +18,10 @@ terraform {
     dynamodb_table = "hcl-terraform-lock"
     encrypt        = true
     #profile        = "dev"
+    versioning {
+      enabled = true
+    }
+  
   }
 }
 

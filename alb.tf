@@ -1,8 +1,10 @@
 resource "aws_alb" "hcl_main" {
   name            = "hcl-load-balancer"
+  internal = false
   load_balancer_type = "application"
-  subnets         = aws_subnet.public.*.id
+  subnets         = aws_subnet.public.*.id #[for subnet in aws_subnet.public : subnet.id]
   security_groups = [aws_security_group.hcl_lb.id]
+
 }
 
 resource "aws_alb_target_group" "hcl_appointment_app" {
@@ -10,6 +12,7 @@ resource "aws_alb_target_group" "hcl_appointment_app" {
   port        = local.appointment_container_port
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
+
   target_type = "ip"
 
   health_check {
@@ -30,12 +33,16 @@ resource "aws_alb_listener" "appointment_listener" {
   load_balancer_arn = aws_alb.hcl_main.id
   port              = var.app_port
   protocol          = "HTTP"
-
+  ssl_policy = "ELBSecurityPolicy-2016-08"
+  certificate_arn = ""
   default_action {
     target_group_arn = aws_alb_target_group.hcl_appointment_app.arn
     type             = "forward"
   }
+  
 }
+
+#cognito,acm
 
 resource "aws_alb_target_group" "hcl_patient_app" {
   name        = "patient-target-group"
@@ -65,4 +72,9 @@ resource "aws_alb_listener" "patient_listener" {
     target_group_arn = aws_alb_target_group.hcl_patient_app.arn
     type             = "forward"
   }
+}
+
+output "dns_name" {
+  description = "The DNS name of the load balancer"
+  value       = try(aws_lb.this[0].dns_name, null)
 }
