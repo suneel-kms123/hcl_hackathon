@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:20.0-slim
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -9,7 +9,7 @@ COPY appointment-service.js .
 
 RUN npm install \
     && npm install -g serve \
-    && npm run build \
+    && npm run-script build \
     && rm -fr node_modules
 
 # Expose the port that the app listens on

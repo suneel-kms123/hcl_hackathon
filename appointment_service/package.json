@@ -7,9 +7,11 @@
   "type": "commonjs",
   "main": "appointment-service.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo works fine"
   },
   "dependencies": {
+    "appointment_service": "file:",
     "express": "^5.1.0"
   }
 }

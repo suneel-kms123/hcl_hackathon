@@ -13,6 +13,12 @@ module "hcl_ecs" {
       }
     }
   }
+
+  cloudwatch_log_group_kms_key_id = module.kms.key_arn
+  cloudwatch_log_group_retention_in_days = 14
+  create_cloudwatch_log_group = true
+  cloudwatch_log_group_name = "ecs"
+
   tags = {
     Name        = "hcl_ecs"
     environment = "dev"
@@ -31,13 +37,29 @@ locals {
 
 data "aws_iam_role" "ecs_task_execution_role" { name = "ecsTaskExecutionRole" }
 
-data "aws_iam_role" "ecs_task_role" { name = "ecsTaskRole" }
-data "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
+data "aws_iam_policy_document" "ecs_task_doc" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  name_prefix = "ecs-task-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = data.aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
-data "aws_iam_role_policy_attachment" "ecs_task_role" {
-  role       = data.aws_iam_role.ecs_task_role.name
+resource "aws_iam_role_policy_attachment" "ecs_task_role" {
+  role       = aws_iam_role.ecs_task_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -67,15 +89,17 @@ resource "aws_ecs_service" "patient_service" {
   launch_type     = "FARGATE"
   name            = "${local.example}-patient-service"
   task_definition = resource.aws_ecs_task_definition.patient_service_definition.arn
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 
   lifecycle {
     ignore_changes = [desired_count] # Allow external changes to happen without Terraform conflicts, particularly around auto-scaling.
   }
 
   load_balancer {
-    container_name = local.patient_container_port
+    container_name = local.patient_container_name
     container_port = local.patient_container_port
-    #target_group_arn = aws_alb.hcl_main.arn
     target_group_arn = aws_alb_target_group.hcl_app.arn
   }
 
@@ -115,6 +139,10 @@ resource "aws_ecs_service" "appointment_service" {
 
   lifecycle {
     ignore_changes = [desired_count] # Allow external changes to happen without Terraform conflicts, particularly around auto-scaling.
+  }
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
   }
 
   load_balancer {

@@ -85,3 +85,5 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
 
   alarm_actions = [aws_appautoscaling_policy.down.arn]
 }
+
+##TODO autoscaling only enabled on appointment. add to patient service

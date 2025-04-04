@@ -1,4 +1,43 @@
 data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_network_acl" "main" {
+  vpc_id = module.vpc.vpc_id
+
+  egress {
+    protocol   = "tcp"
+    rule_no    = 200
+    action     = "allow"
+    cidr_block = var.cidr
+    from_port  = 443
+    to_port    = 443
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = var.cidr
+    from_port  = 80
+    to_port    = 80
+  }
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_network_acl_association" "private_acl_association" {
+  count          = var.az_count
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = aws_subnet.private[count.index].id
+}
+
+resource "aws_network_acl_association" "acl_association" {
+  count          = var.az_count
+  network_acl_id = aws_network_acl.main.id
+  subnet_id      = aws_subnet.public[count.index].id
 }
 
 resource "aws_subnet" "private" {
@@ -25,7 +64,7 @@ resource "aws_internet_gateway" "gw" {
 # Route the public subnet traffic through the IGW
 resource "aws_route" "internet_access" {
   count                  = var.az_count
-  route_table_id         = module.vpc.vpc_main_route_table_id
+  route_table_id         = aws_route_table.private[count.index].id
   depends_on             = [aws_internet_gateway.gw]
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.gw.id
@@ -50,7 +89,7 @@ resource "aws_route_table" "private" {
   vpc_id = module.vpc.vpc_id
 
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block     = aws_subnet.private[count.index].cidr_block
     nat_gateway_id = element(aws_nat_gateway.gw.*.id, count.index)
   }
 }
@@ -61,3 +100,4 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
+

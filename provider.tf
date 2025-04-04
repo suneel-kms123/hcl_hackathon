@@ -8,16 +8,20 @@ terraform {
       source  = "kreuzwerker/docker"
       version = "3.0.2"
     }
-  }
+  }  
 
   
   backend "s3" {
     bucket         = "hcl-terraform-state"
     key            = ".terraform/terraform.tfstate"
-    region         = var.region
+    region         = "us-east-1"
     dynamodb_table = "hcl-terraform-lock"
     encrypt        = true
     #profile        = "dev"
+    versioning {
+      enabled = true
+    }
+  
   }
 }
 
@@ -26,8 +30,13 @@ provider "aws" {
 }
 
 data "aws_caller_identity" "this" {}
+
 data "aws_ecr_authorization_token" "this" {}
+
 data "aws_region" "this" {}
+
+data "aws_partition" "current" {}
+
 locals { ecr_address = format("%v.dkr.ecr.%v.amazonaws.com", data.aws_caller_identity.this.account_id, data.aws_region.this.name) }
 
 provider "docker" {

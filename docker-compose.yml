@@ -1,0 +1,11 @@
+version: '1'
+name: 'healthcare'
+services:
+  appointment:
+    build: appointment_service/.
+    ports:
+      - 8080:8080
+  patient:
+    build: patient_service/.
+    ports:
+      - 8081:8081

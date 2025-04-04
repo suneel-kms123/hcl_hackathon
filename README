@@ -5,18 +5,63 @@
 - applications depend upon the certain library - express
 - install the library/package in the docker file 
 - I have used/created 2 Dockerfile respectively for the patient and appointment applications
+- using the docker-compose to build the dockerfiles
+    - docker-compose build
+    - creates 2 docker images with the name provided in the docker-compose.yml also ports are defined in same file
+- backend s3 terraform state file versioning enabled
+
+### Architecture
+    - subnets
+        - 2 per availability zone
+    - security groups
+        - attached to each instance and alb
+    - network ACL
+        - attached to subnets
+    - internet gateway
+        - for internet facing
+    - nat gateway
+        - for private subnets
+    - routing tables
+    - ECS
+        - FARGATE based instances for hosting the workloads
+        - IAM rules
+        - service definition
+        - services
+            - to host the workloads with images from ECR
+    - ECR
+    - Target groups
+    - ALB
+    - workload
+        - appointment-service
+        -patient-service
+    - docker container of the service
+        - terraform provider `*/docker`
+        - resource docker_image provides path to create docker image
+        - 2 images created of workload
+    - docker creation and pushed to ECR
+        - terraform provider `*/docker`
+        - provides `docker_image_registry` resource to push the image on to the ECR or any repo configured
+    - cloudwatch logs
+    
 
 ### Terraform 
 
 - terraform state is maintained in s3 with dynamodb lock mechanism
 - used terraform provided modules vpc, alb, ecs, ecr
-
+- set TF_LOG=DEBUG to get the verbose logs to debug
+- provider.tf contains the providers library required for the project
+- create workspaces with cmd `terraform workspace new dev`
+- use the workspace with cmd `terraform select workspace dev`
 
 ### how to start contributing
-- clone the project
+- clone the project 
 - terraform init to begin the terraform journey
 - terraform plan or terraform graph to visualise the effect of the scripts
-- 
+- add your contributions
+- raise a pull_request
+- couple of pipelines will be executed
+    - continuous integration pipeline for node code changes
+    - terraform changes
 
 ### Github actions
 - pipeline to trigger on [pull_request]
@@ -25,8 +70,12 @@
 - pipeline to trigger on [merge]
     - Terraform apply on merges to main branch
 
+### (Testing && Troubleshooting && Debugging)
+
 
 ## Improvements
 
+- architectural improvement ot use api-gateway, WAF, certificate manager, 
 - terraform scripts enhancement
 - docker to use the multi stage build to reduce size
+- github action improvement
